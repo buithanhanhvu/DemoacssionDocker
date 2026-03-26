@@ -2,7 +2,7 @@ name: Tự động Deploy lên Docker Hub
 
 on:
   push:
-    branches: [ "main" ] # Chạy khi push code lên nhánh main
+    branches: [ "main" ] # Tự động chạy khi bạn push code lên nhánh main
 
 jobs:
   build-and-push:
@@ -29,26 +29,29 @@ jobs:
 
       - name: Bước 4 - Triển khai lên DevOps Classroom
         run: |
+          # Khai báo thông tin Repo và Port của App (thường là 80 hoặc 8080)
           REPO="buithanhanhvu/cv-app"
           CONTAINER_PORT=80
-          # Gọi Webhook của thầy
+          
+          # Gọi Webhook của thầy để yêu cầu Server tải Image mới về chạy
+          # Lưu ý: slot=6 tương ứng với Port 21041 trên server của thầy
           RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=latest&slot=6&container_port=$CONTAINER_PORT")
           
-          # Tách Body và Code để kiểm tra
+          # Tách nội dung phản hồi (Body) và Mã trạng thái (HTTP Code)
           BODY=$(echo "$RESPONSE" | sed '$d')
           CODE=$(echo "$RESPONSE" | tail -n1)
           
           echo "Webhook HTTP Status: $CODE"
           
           if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
-            echo "Deploy thất bại. Kiểm tra log bên dưới."
-            echo "::group::Chi tiết lỗi JSON"
+            echo " Deploy thất bại! Kiểm tra lại DEPLOY_URL hoặc Slot."
+            echo "::group::Chi tiết lỗi từ Server"
             echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
             echo "::endgroup::"
             exit 1
           fi
           
-          echo "Deploy thành công rực rỡ!"
-          echo "::group::Kết quả trả về"
+          echo " Deploy thành công rực rỡ!"
+          echo "::group::Kết quả trả về từ Webhook"
           echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
           echo "::endgroup::"
