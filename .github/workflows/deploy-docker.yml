@@ -45,7 +45,7 @@ jobs:
           
           if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
             echo " Deploy thất bại! Kiểm tra lại DEPLOY_URL hoặc Slot."
-            echo "::group::Chi tiết lỗi từ Server"
+            echo "::group::Chi tiết lỗi từ Server la"
             echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
             echo "::endgroup::"
             exit 1
